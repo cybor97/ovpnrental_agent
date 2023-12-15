@@ -1,0 +1,14 @@
+{
+  "name": "ovpnrental_agent",
+  "version": "1.0.0",
+  "description": "VPN server-side tool to leverage basic certificate operations",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "rinfly97",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.10.4"
+  }
+}
