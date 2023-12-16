@@ -3,7 +3,7 @@ import { DeleteCommand } from "./commands/delete";
 import { ListCommand } from "./commands/list";
 import { RevokeCommand } from "./commands/revoke";
 import { ShowCommand } from "./commands/show";
-import { executeCommand } from "./utils/shell";
+import { getMyIp } from "./utils/net";
 
 const commands = {
   create: new CreateCommand(),
@@ -14,7 +14,7 @@ const commands = {
 };
 
 async function main(): Promise<void> {
-  const [, ip] = await executeCommand("hostname", "-I");
+  const ip = await getMyIp();
   const clientName = process.argv.at(-1) as string;
   const command = process.argv.at(-2) as keyof typeof commands;
   const result = await commands[command].run({ ip, clientName });

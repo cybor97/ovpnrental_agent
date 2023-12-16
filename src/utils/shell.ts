@@ -1,13 +1,18 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 
 export async function executeCommand(
+  cwd: string,
   command: string,
-  ...args: string[]
+  args: string[],
+  stdinArgs: string[] = []
 ): Promise<[string, string]> {
   return new Promise((resolve, reject) => {
-    const childProcess = runDirectly(command, args);
+    const childProcess = runDirectly(cwd, command, args);
     let errData = "";
     let commandData = "";
+    for (const arg of stdinArgs) {
+      childProcess.stdin.write(arg + "\n");
+    }
     childProcess.stdout.on("data", (data: Buffer) => {
       commandData += data.toString();
     });
@@ -24,9 +29,9 @@ export async function executeCommand(
 }
 
 function runDirectly(
+  cwd: string,
   command: string,
   args: string[] = []
 ): ChildProcessWithoutNullStreams {
-  return spawn("scw-ovpn", [command, ...args]);
+  return spawn(command, [...args], { cwd });
 }
-

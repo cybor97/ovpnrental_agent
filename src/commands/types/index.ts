@@ -8,11 +8,17 @@ export interface ClientConfig {
   cert: string | null;
 }
 
+export enum CertificateStatus {
+  VALID = "V",
+  REVOKED = "R",
+  EXPIRED = "E",
+}
+
 export interface CertificateRecord {
-  status: string;
-  expirationDate: string;
-  revocationDate: string | null;
+  status: CertificateStatus;
+  expirationDate: Date | null;
+  revocationDate: Date | null;
   serialNumber: string;
-  fileName: string;
+  fileName: string | null;
   commonName: string;
 }

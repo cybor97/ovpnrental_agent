@@ -1,7 +1,8 @@
 import * as fs from "fs/promises";
 import { join } from "path";
 import { ICommand } from "./types/ICommand";
-import { CertificateRecord } from "./types";
+import { CertificateRecord, CertificateStatus } from "./types";
+import { parseEasyRsaDate } from "../utils/date";
 
 export class ListCommand extends ICommand {
   public async run(): Promise<Array<CertificateRecord>> {
@@ -31,12 +32,12 @@ export class ListCommand extends ICommand {
           commonName,
         ] = tokens;
         const record: CertificateRecord = {
-          status,
-          expirationDate,
-          revocationDate,
+          status: status as CertificateStatus,
+          expirationDate: parseEasyRsaDate(expirationDate),
+          revocationDate: parseEasyRsaDate(revocationDate),
           serialNumber,
-          fileName,
-          commonName,
+          fileName: fileName === "unknown" ? null : fileName,
+          commonName: commonName.replace(/^\/CN=/g, ""),
         };
         records.push(record);
       }

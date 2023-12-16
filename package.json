@@ -2,13 +2,21 @@
   "name": "ovpnrental_agent",
   "version": "1.0.0",
   "description": "VPN server-side tool to leverage basic certificate operations",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rm -rf tsbuild/* && tsc",
+    "pkg": "rm -f dist/* && pkg tsbuild/index.js -t node18-linux-x64 --out-path dist && mv dist/index dist/ovpnrental_agent"
+  },
+  "pkg": {
+    "scripts": "tsbuild/**/*.js",
+    "assets": "views/**/*",
+    "outputPath": "dist"
   },
   "author": "rinfly97",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^20.10.4"
+    "@types/node": "^20.10.4",
+    "pkg": "^5.8.1",
+    "typescript": "^5.3.3"
   }
 }
