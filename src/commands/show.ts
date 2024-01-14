@@ -28,7 +28,6 @@ export class ShowCommand extends ICommand {
       this.wrapTag("ca", common.caCrt),
       "remote-cert-tls server",
       this.wrapParam("tls-version-min", config.tlsVersionMin),
-      this.wrapParam("cipher", config.cipher),
       this.wrapParam("auth", config.auth),
       this.wrapParam("key-direction", "1"),
       this.wrapTag("tls-auth", common.tlsAuth),
@@ -76,7 +75,7 @@ export class ShowCommand extends ICommand {
   }
 
   private wrapTag(tagName: string, content: string): string {
-    return `<${tagName}>${content}</${tagName}>`;
+    return `<${tagName}>\n${content}\n</${tagName}>`;
   }
 
   private wrapParam(paramName: string, ...paramValues: string[]): string {
