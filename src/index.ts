@@ -1,3 +1,4 @@
+import { inspect } from "util";
 import { NatsConnection, Subscription, connect, jwtAuthenticator } from "nats";
 import { CreateCommand } from "./commands/create";
 import { DeleteCommand } from "./commands/delete";
@@ -8,6 +9,7 @@ import config from "./config";
 import { CertCommandPayloadNATS, CertCommandStatus } from "./types";
 import { statusUpdate } from "./utils/nats";
 import { getMyIp } from "./utils/net";
+import logger from "./utils/logger";
 
 const certCommands = {
   create: new CreateCommand(),
@@ -26,16 +28,19 @@ async function main(): Promise<void> {
       Buffer.from(config.natsNkeySeed as string)
     ),
   });
-  console.log(`Connected to ${natsConnection.getServer()}...`);
+  logger.info(`[main] Connected to ${natsConnection.getServer()}...`);
 
   const subscriptions: Subscription[] = [];
   for (const cmd in certCommands) {
-    console.log(`Registering command ${cmd}...`);
+    logger.info(`[main] Registering command ${cmd}...`);
     subscriptions.push(natsConnection.subscribe(`cert.${cmd}`));
   }
-  await Promise.all(
-    subscriptions.map((s) => runEventHandler(natsConnection, localIp, s))
+  const promises = subscriptions.map((s) =>
+    runEventHandler(natsConnection, localIp, s)
   );
+  logger.info("[main] Initializing commands...");
+
+  await Promise.all(promises);
 }
 
 async function runEventHandler(
@@ -45,27 +50,34 @@ async function runEventHandler(
 ): Promise<void> {
   const subject = sub.getSubject();
   const command = subject.split(".")[1] as keyof typeof certCommands;
-  for await (const msg of sub) {
-    const { clientName } = msg.json<CertCommandPayloadNATS>();
-    statusUpdate(natsConnection, subject, {
-      clientName,
-      status: CertCommandStatus.PROCESSING,
-    });
-    try {
-      await certCommands[command].run({
-        ip: localIp,
-        clientName,
-      });
+  while (true) {
+    for await (const msg of sub) {
+      const { clientName } = msg.json<CertCommandPayloadNATS>();
       statusUpdate(natsConnection, subject, {
         clientName,
-        status: CertCommandStatus.SUCCESS,
+        status: CertCommandStatus.PROCESSING,
       });
-    } catch (err) {
-      statusUpdate(natsConnection, subject, {
-        clientName,
-        status: CertCommandStatus.FAILURE,
-      });
-      console.error(err);
+      try {
+        const data = await certCommands[command].run({
+          ip: localIp,
+          clientName,
+        });
+        statusUpdate(natsConnection, subject, {
+          clientName,
+          status: CertCommandStatus.SUCCESS,
+          data
+        });
+      } catch (err) {
+        statusUpdate(natsConnection, subject, {
+          clientName,
+          status: CertCommandStatus.FAILURE
+        });
+        logger.error(
+          `[runEventHandler][${subject}] Error running command ${command}. ${inspect(
+            err
+          )}`
+        );
+      }
     }
   }
 }

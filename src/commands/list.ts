@@ -3,6 +3,7 @@ import { join } from "path";
 import { ICommand } from "./types/ICommand";
 import { CertificateRecord, CertificateStatus } from "./types";
 import { parseEasyRsaDate } from "../utils/date";
+import logger from "../utils/logger";
 
 export class ListCommand extends ICommand {
   public async run(): Promise<Array<CertificateRecord>> {
@@ -11,7 +12,7 @@ export class ListCommand extends ICommand {
       const fileContent = await fs.readFile(filePath, "utf8");
       return this.parseContent(fileContent);
     } catch (error) {
-      console.error(`Error reading file: ${filePath}`, error);
+      logger.error(`[ListCommand][run] Error reading file: ${filePath}`, error);
       return [];
     }
   }

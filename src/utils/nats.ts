@@ -4,11 +4,14 @@ import { CertCommandPayloadNATS, CertCommandStatus } from "../types";
 export function statusUpdate(
   natsConnection: NatsConnection,
   subject: string,
-  payload: CertCommandPayloadNATS & { status: CertCommandStatus }
+  payload: CertCommandPayloadNATS & {
+    status: CertCommandStatus;
+    data?: unknown;
+  }
 ): void {
-  const { clientName, status } = payload;
+  const { clientName, status, data } = payload;
   natsConnection.publish(
     `${subject}.update`,
-    JSON.stringify({ clientName, status })
+    JSON.stringify({ clientName, status, data })
   );
 }

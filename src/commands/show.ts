@@ -11,7 +11,7 @@ export class ShowCommand extends ICommand {
     const clientSpecific = await this.getClientSpecificConfig(clientName);
 
     if (!common.caCrt || !common.tlsAuth) {
-      throw new Error("OpenVPN configuration issue #1");
+      throw new Error("OpenVPN configuration issue");
     }
 
     if (!clientSpecific.key || !clientSpecific.cert) {

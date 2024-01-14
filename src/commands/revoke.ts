@@ -1,3 +1,4 @@
+import logger from "../utils/logger";
 import { executeCommand } from "../utils/shell";
 import { ICommand } from "./types/ICommand";
 
@@ -23,7 +24,7 @@ export class RevokeCommand extends ICommand {
         throw new Error(errCrl);
       }
     } catch (error) {
-      console.error(`Error building client ${clientName}`, error);
+      logger.error(`[RevokeCommand][run] Error building client ${clientName}`, error);
       throw new Error(`Error building client ${clientName}`);
     }
   }

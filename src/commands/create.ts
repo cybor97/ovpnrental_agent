@@ -1,3 +1,4 @@
+import logger from "../utils/logger";
 import { executeCommand } from "../utils/shell";
 import { ICommand } from "./types/ICommand";
 
@@ -10,14 +11,21 @@ export class CreateCommand extends ICommand {
         clientName,
         "nopass",
       ]);
-      if (data.includes("Signature ok") && data.includes("Data Base Updated")) {
+      const commonData = err + data;
+      if (
+        commonData.includes("Signature ok") &&
+        commonData.includes("Data Base Updated")
+      ) {
         return;
       }
       if (err) {
         throw new Error(err);
       }
     } catch (error) {
-      console.error(`Error building client ${clientName}`, error);
+      logger.error(
+        `[CreateCommand][run] Error building client ${clientName}`,
+        error
+      );
       throw new Error(`Error building client ${clientName}`);
     }
   }
