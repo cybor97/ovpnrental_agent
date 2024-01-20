@@ -9,7 +9,8 @@
     "outDir": "tsbuild",
     "paths": {
       "@utils/*": ["./src/utils/*"]
-    }
+    },
+    "baseUrl": "."
   },
   "include": ["src/**/*.ts"]
 }
