@@ -1,5 +1,5 @@
 import { join } from "path";
-import config from "../../config";
+import config from "../../../../config";
 
 export abstract class ICommand {
   protected rsaDirectory: string;

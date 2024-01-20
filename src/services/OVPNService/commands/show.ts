@@ -1,5 +1,5 @@
 import * as path from "path";
-import config from "../config";
+import config from "../../../config";
 import { ICommand } from "./types/ICommand";
 import { ClientConfig, CommonConfig } from "./types";
 import { readFile, stat } from "fs/promises";

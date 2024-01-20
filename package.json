@@ -4,6 +4,7 @@
   "description": "VPN server-side tool to leverage basic certificate operations",
   "main": "index.ts",
   "scripts": {
+    "dev": "nodemon --watch './**/*.ts' --exec 'ts-node' -r tsconfig-paths/register ./src/index.ts",
     "build": "rm -rf tsbuild/* && tsc",
     "pkg": "rm -f dist/* && pkg tsbuild/index.js -t node18-linux-x64 --out-path dist && mv dist/index dist/ovpnrental_agent"
   },
@@ -16,11 +17,13 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.10.4",
+    "tsconfig-paths": "^4.2.0",
     "pkg": "^5.8.1",
     "typescript": "^5.3.3"
   },
   "dependencies": {
     "dotenv": "^16.3.1",
-    "nats": "^2.18.0"
+    "winston": "^3.11.0",
+    "@aws-sdk/client-sqs": "^3.496.0"
   }
 }

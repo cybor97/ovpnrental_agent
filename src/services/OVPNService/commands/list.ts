@@ -2,8 +2,8 @@ import * as fs from "fs/promises";
 import { join } from "path";
 import { ICommand } from "./types/ICommand";
 import { CertificateRecord, CertificateStatus } from "./types";
-import { parseEasyRsaDate } from "../utils/date";
-import logger from "../utils/logger";
+import { parseEasyRsaDate } from "../../../utils/date";
+import logger from "../../../utils/logger";
 
 export class ListCommand extends ICommand {
   public async run(): Promise<Array<CertificateRecord>> {

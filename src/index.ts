@@ -1,84 +1,69 @@
 import { inspect } from "util";
-import { NatsConnection, Subscription, connect, jwtAuthenticator } from "nats";
-import { CreateCommand } from "./commands/create";
-import { DeleteCommand } from "./commands/delete";
-import { ListCommand } from "./commands/list";
-import { RevokeCommand } from "./commands/revoke";
-import { ShowCommand } from "./commands/show";
 import config from "./config";
-import { CertCommandPayloadNATS, CertCommandStatus } from "./types";
-import { statusUpdate } from "./utils/nats";
-import { getMyIp } from "./utils/net";
+import {
+  CertCommandPayloadSQS,
+  CertCommandStatus,
+  MQCertCommand,
+} from "./types";
 import logger from "./utils/logger";
-
-const certCommands = {
-  create: new CreateCommand(),
-  list: new ListCommand(),
-  show: new ShowCommand(),
-  revoke: new RevokeCommand(),
-  delete: new DeleteCommand(),
-};
+import { SQSService } from "./services/SQSService";
+import { OVPNService } from "./services/OVPNService";
 
 async function main(): Promise<void> {
-  const localIp = await getMyIp();
-  const natsConnection = await connect({
-    servers: config.natsServer,
-    authenticator: jwtAuthenticator(
-      config.natsJwt as string,
-      Buffer.from(config.natsNkeySeed as string)
-    ),
+  logger.info("[main] Starting...");
+  const sqs = config.sqs;
+  const { region, endpoint, accessKeyId, secretAccessKey } = sqs;
+  const sqsManager = SQSService.getService({
+    region,
+    endpoint,
+    accessKeyId,
+    secretAccessKey,
+    emitterQueueUrl: sqs.agentQueueUrl,
+    consumerQueueUrl: sqs.appQueueUrl,
   });
-  logger.info(`[main] Connected to ${natsConnection.getServer()}...`);
+  const ovpnManager = await OVPNService.getService();
+  const mqCertCommands = Object.values(MQCertCommand) as MQCertCommand[];
+  sqsManager.initEmitter(...mqCertCommands.map((key) => `${key}.update`));
+  sqsManager.initConsumer(...mqCertCommands);
 
-  const subscriptions: Subscription[] = [];
-  for (const cmd in certCommands) {
-    logger.info(`[main] Registering command ${cmd}...`);
-    subscriptions.push(natsConnection.subscribe(`cert.${cmd}`));
+  for (const command of mqCertCommands) {
+    logger.info(`[main] Registering command ${command}`);
+    sqsManager.eventEmitter.on(command, (payload: CertCommandPayloadSQS) => {
+      void handleEvent(sqsManager, ovpnManager, command, payload);
+    });
   }
-  const promises = subscriptions.map((s) =>
-    runEventHandler(natsConnection, localIp, s)
-  );
-  logger.info("[main] Initializing commands...");
-
-  await Promise.all(promises);
+  logger.info("[main] Init complete");
 }
 
-async function runEventHandler(
-  natsConnection: NatsConnection,
-  localIp: string,
-  sub: Subscription
+async function handleEvent(
+  sqsManager: SQSService,
+  ovpnManager: OVPNService,
+  command: MQCertCommand,
+  payload: CertCommandPayloadSQS
 ): Promise<void> {
-  const subject = sub.getSubject();
-  const command = subject.split(".")[1] as keyof typeof certCommands;
-  while (true) {
-    for await (const msg of sub) {
-      const { clientName } = msg.json<CertCommandPayloadNATS>();
-      statusUpdate(natsConnection, subject, {
-        clientName,
-        status: CertCommandStatus.PROCESSING,
-      });
-      try {
-        const data = await certCommands[command].run({
-          ip: localIp,
-          clientName,
-        });
-        statusUpdate(natsConnection, subject, {
-          clientName,
-          status: CertCommandStatus.SUCCESS,
-          data
-        });
-      } catch (err) {
-        statusUpdate(natsConnection, subject, {
-          clientName,
-          status: CertCommandStatus.FAILURE
-        });
-        logger.error(
-          `[runEventHandler][${subject}] Error running command ${command}. ${inspect(
-            err
-          )}`
-        );
-      }
-    }
+  const { clientName } = payload;
+  sqsManager.eventEmitter.emit(`${command}.update`, {
+    status: CertCommandStatus.PROCESSING,
+    clientName,
+  });
+  try {
+    const data = await ovpnManager.runCommand(`${command}`, { clientName });
+    sqsManager.eventEmitter.emit(`${command}.update`, {
+      status: CertCommandStatus.SUCCESS,
+      clientName,
+      data,
+    });
+  } catch (error) {
+    sqsManager.eventEmitter.emit(`${command}.update`, {
+      status: CertCommandStatus.FAILURE,
+      clientName,
+    });
+
+    logger.error(
+      `[handleEvent][${command}] Error running command ${command}. ${inspect(
+        error
+      )}`
+    );
   }
 }
 

@@ -1,5 +1,5 @@
-import logger from "../utils/logger";
-import { executeCommand } from "../utils/shell";
+import logger from "../../../utils/logger";
+import { executeCommand } from "../../../utils/shell";
 import { ICommand } from "./types/ICommand";
 
 export class RevokeCommand extends ICommand {
