@@ -8,4 +8,5 @@ export enum CertCommand {
   show = "show",
   revoke = "revoke",
   delete = "delete",
+  nudge = "nudge",
 }
