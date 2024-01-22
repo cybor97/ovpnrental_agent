@@ -4,6 +4,7 @@ export enum MQCertCommand {
   show = "cert.show",
   revoke = "cert.revoke",
   delete = "cert.delete",
+  nudge = "cert.nudge",
 }
 
 export interface CertCommandPayloadSQS {
