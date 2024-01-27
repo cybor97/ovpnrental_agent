@@ -20,7 +20,7 @@ if (config.loki.host) {
     new LokiTransport({
       host: `https://${config.loki.host}`,
       basicAuth: `api_key:${config.loki.token}`,
-      labels: { app: config.loki.label },
+      labels: { app: config.loki.label, serverId: config.serverId },
       json: true,
       format: winston.format.json(),
       replaceTimestamp: true,

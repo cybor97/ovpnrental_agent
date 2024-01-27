@@ -1,12 +1,12 @@
 {
   "name": "ovpnrental_agent",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "VPN server-side tool to leverage basic certificate operations",
   "main": "index.ts",
   "scripts": {
-    "dev": "nodemon --watch './**/*.ts' --exec 'ts-node' -r tsconfig-paths/register ./src/index.ts",
-    "build": "rm -rf tsbuild/* && tsc && tscpaths -p tsconfig.json -s ./src -o tsbuild",
-    "pkg": "rm -f dist/* && pkg tsbuild/index.js -t node18-linux-x64 --out-path dist && mv dist/index dist/ovpnrental_agent"
+    "dev": "nodemon ./src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "pkg": "rm -f dist/* && pkg tsbuild/src/index.js -t node18-linux-x64 --out-path dist && mv dist/index dist/ovpnrental_agent"
   },
   "pkg": {
     "scripts": "tsbuild/**/*.js",

@@ -6,6 +6,7 @@ export default {
   tlsVersionMin: process.env.TLS_VERSION_MIN ?? "1.2",
   auth: process.env.AUTH ?? "SHA256",
   rsaDirectory: process.env.RSA_DIRECTORY ?? "/etc/openvpn/easy-rsa/",
+  serverId: process.env.SERVER_ID ?? "unknown",
   loki: {
     host: process.env.LOKI_HOST,
     label: process.env.LOKI_LABEL,
