@@ -46,7 +46,7 @@ jobs:
       - name: Deploying
         uses: webfactory/ssh-agent@v0.8.0
         with:
-          ssh-private-key: ${{ secrets.APP_SSH_KEY }}
+          ssh-private-key: ${{ secrets.AGENT_SSH_KEY }}
 
       - name: Deliver
         run: |
