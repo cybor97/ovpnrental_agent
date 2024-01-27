@@ -14,7 +14,7 @@ jobs:
     steps:
       - id: matrix
         run: |
-          echo "value=$(curl https://admin.itracers.xyz:8543/internal/servers -H 'Authorization: ${{ secrets.APP_JWT }}')" >> $GITHUB_OUTPUT
+          echo "value=$(curl ${{ secrets.TARGETS_ENDPOINT }} -H 'Authorization: ${{ secrets.APP_JWT }}')" >> $GITHUB_OUTPUT
       - run: |
           echo "${{ steps.matrix.outputs.value }}"
 
@@ -50,7 +50,7 @@ jobs:
 
       - name: Deliver
         run: |
-          scp -oStrictHostKeyChecking=no dist/ovpnrental_agent deploy@${{ matrix.value.host }}:ovpnrental_agent.zip;
+          scp -oStrictHostKeyChecking=no dist/ovpnrental_agent deploy@${{ matrix.value.host }}:ovpnrental_agent;
           scp -oStrictHostKeyChecking=no install.sh deploy@${{ matrix.value.host }}:install.sh;
           ssh -oStrictHostKeyChecking=no deploy@${{ matrix.value.host }} <<< $'chmod +x ./install.sh';
           ssh -oStrictHostKeyChecking=no deploy@${{ matrix.value.host }} <<< $'./install.sh';
